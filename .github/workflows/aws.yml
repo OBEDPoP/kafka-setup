@@ -91,10 +91,19 @@ jobs:
       with:
         terraform_version: latest
     
+    - name: Remove Terraform Lock File
+      run: rm -f .terraform.lock.hcl
+    
+    - name: Terraform Init
+      run: terraform init -upgrade
+    
     - name: Download Terraform Plan
       uses: actions/download-artifact@v4
       with:
         name: terraform-plan
+    
+    - name: Terraform Plan (Regenerate to Ensure Compatibility)
+      run: terraform plan -out=tfplan
     
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan
