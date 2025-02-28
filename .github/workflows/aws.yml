@@ -41,10 +41,12 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
     
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
       with:
-        terraform_version: latest
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_OIDC_ROLE }}
+        role-session-name: GitHubActionsRole
+        aws-region: us-east-1
     
     - name: Terraform Init
       run: terraform init
@@ -69,10 +71,12 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
     
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
       with:
-        terraform_version: latest
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_OIDC_ROLE }}
+        role-session-name: GitHubActionsRole
+        aws-region: us-east-1
     
     - name: Download Terraform Plan
       uses: actions/download-artifact@v4

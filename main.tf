@@ -8,9 +8,10 @@ terraform {
     key            = "kafka-banking/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "terraform-locks"
+    use_lock_table = true
   }
 }
+
 
 resource "aws_vpc" "kafka_vpc" {
   cidr_block = "10.0.0.0/16"
