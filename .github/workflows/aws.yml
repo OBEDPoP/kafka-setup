@@ -53,8 +53,11 @@ jobs:
       with:
         terraform_version: latest
     
+    - name: Remove Terraform Lock File
+      run: rm -f .terraform.lock.hcl
+    
     - name: Terraform Init
-      run: terraform init
+      run: terraform init -upgrade
     
     - name: Terraform Plan
       run: terraform plan -out=tfplan
