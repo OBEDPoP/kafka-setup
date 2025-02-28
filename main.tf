@@ -191,7 +191,7 @@ resource "aws_db_instance" "rds" {
 resource "aws_instance" "ec2" {
   ami                    = "ami-02a53b0d62d37a757"
   instance_type          = "t3.nano"
-  key_name               = "my-key-pair"
+  key_name               = "kops"
   vpc_security_group_ids = [aws_security_group.kafka_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
