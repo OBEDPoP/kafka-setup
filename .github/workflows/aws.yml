@@ -41,6 +41,11 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
     
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: latest
+    
     - name: Terraform Init
       run: terraform init
     
@@ -63,6 +68,11 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: latest
     
     - name: Download Terraform Plan
       uses: actions/download-artifact@v4
