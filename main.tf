@@ -143,7 +143,7 @@ resource "aws_iam_role_policy_attachment" "ec2_kafka_policy_attach" {
 resource "aws_msk_cluster" "kafka" {
   cluster_name           = "banking-kafka-cluster"
   kafka_version          = "2.8.1"
-  number_of_broker_nodes = 1 
+  number_of_broker_nodes = 2
 
   broker_node_group_info {
     instance_type   = "kafka.t3.small"
@@ -170,7 +170,7 @@ resource "aws_db_instance" "rds" {
   identifier           = "banking-db"
   engine              = "postgres"
   instance_class      = "db.t3.micro"
-  allocated_storage   = 2
+  allocated_storage   = 5
   username           = "kafka_user"
   password           = "kafka_pass"
   publicly_accessible = true
