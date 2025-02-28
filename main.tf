@@ -4,10 +4,11 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket         = "your-terraform-state-bucket"
+    bucket         = "obedpop-terraform-state-bucket"
     key            = "kafka-banking/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
+    dynamodb_table = "terraform-locks"
   }
 }
 
