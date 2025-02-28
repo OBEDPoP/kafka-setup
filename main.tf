@@ -140,6 +140,18 @@ resource "aws_iam_role_policy_attachment" "ec2_kafka_policy_attach" {
 }
 
 # ---------------------- MSK KAFKA CLUSTER ----------------------
+resource "aws_secretsmanager_secret" "kafka_scram_secret" {
+  name = "kafka_scram_credentials"
+}
+
+resource "aws_secretsmanager_secret_version" "kafka_scram_secret_value" {
+  secret_id     = aws_secretsmanager_secret.kafka_scram_secret.id
+  secret_string = jsonencode({
+    "username" = "admin",
+    "password" = "Arun07!"
+  })
+}
+
 resource "aws_msk_cluster" "kafka" {
   cluster_name           = "banking-kafka-cluster"
   kafka_version          = "2.8.1"
@@ -159,11 +171,28 @@ resource "aws_msk_cluster" "kafka" {
   }
 
   authentication_info {
-    iam = {
-      enabled = true
+    sasl = {
+      scram = true
     }
   }
+
+  configuration_info {
+    arn      = aws_msk_configuration.kafka_config.arn
+    revision = aws_msk_configuration.kafka_config.latest_revision
+  }
 }
+
+resource "aws_msk_configuration" "kafka_config" {
+  name      = "banking-kafka-config"
+  kafka_versions = ["2.8.1"]
+  server_properties = <<EOT
+sasl.enabled.mechanisms=SCRAM-SHA-512
+sasl.mechanism.inter.broker.protocol=SCRAM-SHA-512
+listener.security.protocol.map=PLAINTEXT:PLAINTEXT,SASL_SSL:SASL_SSL
+sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="admin" password="Arun07!";
+EOT
+}
+
 
 # ---------------------- RDS POSTGRES ----------------------
 resource "aws_db_instance" "rds" {
