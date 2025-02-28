@@ -1,3 +1,13 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 4.67.0"
+    }
+  }
+}
+
+
 provider "aws" {
   region = "us-east-1"
 }
@@ -142,7 +152,7 @@ resource "aws_iam_role_policy_attachment" "ec2_kafka_policy_attach" {
 # ---------------------- MSK KAFKA CLUSTER ----------------------
 resource "aws_msk_cluster" "kafka" {
   cluster_name           = "banking-kafka-cluster"
-  kafka_version          = "2.8.1"
+  kafka_version          = "3.2.0"  # Choose a supported version
   number_of_broker_nodes = 2
 
   broker_node_group_info {
@@ -153,26 +163,10 @@ resource "aws_msk_cluster" "kafka" {
 
   encryption_info {
     encryption_in_transit {
-      client_broker = "TLS"
+      client_broker = "TLS"  # Ensures secure authentication
       in_cluster    = true
     }
   }
-
-  configuration_info {
-    arn      = aws_msk_configuration.kafka_config.arn
-    revision = aws_msk_configuration.kafka_config.latest_revision
-  }
-}
-
-resource "aws_msk_configuration" "kafka_config" {
-  name      = "banking-kafka-config"
-  kafka_versions = ["2.8.1"]
-  server_properties = <<EOT
-sasl.enabled.mechanisms=SCRAM-SHA-512
-sasl.mechanism.inter.broker.protocol=SCRAM-SHA-512
-listener.security.protocol.map=PLAINTEXT:PLAINTEXT,SASL_SSL:SASL_SSL
-sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="kafka_user" password="SuperSecurePassword123!";
-EOT
 }
 
 
