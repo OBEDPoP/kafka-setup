@@ -85,7 +85,7 @@ resource "aws_db_instance" "rds" {
   identifier            = "banking-db"
   engine               = "postgres"
   instance_class       = "db.t3.micro"
-  allocated_storage    = 10 # Reduced from 20GB to 10GB
+  allocated_storage    = 2 # can take care of 3 million transactions
   username            = "kafka_user"
   password            = "kafka_pass"
   publicly_accessible  = true
@@ -94,7 +94,7 @@ resource "aws_db_instance" "rds" {
 
 resource "aws_instance" "ec2" {
   ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
-  instance_type = "t3.nano" # Reduced from t3.micro to t3.nano
+  instance_type = "t3.nano" # Reduced t3.nano cost
   key_name      = "my-key-pair"
   security_groups = [aws_security_group.kafka_sg.id]
   iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
@@ -108,7 +108,7 @@ resource "aws_instance" "ec2" {
               pip3 install flask kafka-python psycopg2-binary psycopg2
               
               # Clone the repository and navigate to the banking folder
-              git clone https://github.com/YOUR_GITHUB_REPO.git /home/ec2-user/banking
+              git clone https://github.com/OBEDPoP/kafka-setup.git /home/ec2-user/banking
               cd /home/ec2-user/banking
               
               # Start AKHQ (Kafka UI)
