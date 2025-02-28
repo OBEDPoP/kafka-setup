@@ -192,7 +192,7 @@ resource "aws_instance" "ec2" {
   ami                    = "ami-02a53b0d62d37a757"
   instance_type          = "t3.nano"
   key_name               = "my-key-pair"
-  security_groups        = [aws_security_group.kafka_sg.id]
+  vpc_security_group_ids = [aws_security_group.kafka_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   user_data = <<-EOF
