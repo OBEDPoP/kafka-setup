@@ -1,4 +1,4 @@
-name: Kafka for Baking Sample Deployment
+name: Kafka for Banking Sample Deployment
 
 on:
   workflow_dispatch:
@@ -48,7 +48,7 @@ jobs:
       run: terraform plan -out=tfplan
     
     - name: Upload Terraform Plan
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: terraform-plan
         path: tfplan
@@ -65,7 +65,7 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Download Terraform Plan
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: terraform-plan
     
