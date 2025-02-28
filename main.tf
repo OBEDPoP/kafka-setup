@@ -73,7 +73,7 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 resource "aws_msk_cluster" "kafka" {
   cluster_name           = "banking-kafka-cluster"
   kafka_version         = "2.8.1"
-  number_of_broker_nodes = 1 # Reduced from 3 to 1
+  number_of_broker_nodes = 1 # Reduced 1 for cost cutting
   broker_node_group_info {
     instance_type   = "kafka.t3.small"
     client_subnets  = [aws_subnet.public1.id]
