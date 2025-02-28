@@ -7,7 +7,6 @@ terraform {
   }
 }
 
-
 provider "aws" {
   region = "us-east-1"
 }
@@ -32,6 +31,13 @@ resource "aws_subnet" "public1" {
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
   availability_zone       = "us-east-1a"
+}
+
+resource "aws_subnet" "public2" {  # Added second subnet
+  vpc_id                  = aws_vpc.kafka_vpc.id
+  cidr_block              = "10.0.2.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "us-east-1b"
 }
 
 resource "aws_security_group" "kafka_sg" {
@@ -152,24 +158,22 @@ resource "aws_iam_role_policy_attachment" "ec2_kafka_policy_attach" {
 # ---------------------- MSK KAFKA CLUSTER ----------------------
 resource "aws_msk_cluster" "kafka" {
   cluster_name           = "banking-kafka-cluster"
-  kafka_version          = "3.2.0"  # Choose a supported version
-  number_of_broker_nodes = 2
+  kafka_version          = "3.2.0"  
+  number_of_broker_nodes = 2  
 
   broker_node_group_info {
     instance_type   = "kafka.t3.small"
-    client_subnets  = [aws_subnet.public1.id]
+    client_subnets  = [aws_subnet.public1.id, aws_subnet.public2.id]  # Added second subnet
     security_groups = [aws_security_group.kafka_sg.id]
   }
 
   encryption_info {
     encryption_in_transit {
-      client_broker = "TLS"  # Ensures secure authentication
+      client_broker = "TLS"
       in_cluster    = true
     }
   }
 }
-
-
 
 # ---------------------- RDS POSTGRES ----------------------
 resource "aws_db_instance" "rds" {
@@ -185,7 +189,7 @@ resource "aws_db_instance" "rds" {
 
 # ---------------------- EC2 INSTANCE ----------------------
 resource "aws_instance" "ec2" {
-  ami                    = "ami-0c55b159cbfafe1f0"
+  ami                    = "ami-02a53b0d62d37a757"
   instance_type          = "t3.nano"
   key_name               = "my-key-pair"
   security_groups        = [aws_security_group.kafka_sg.id]
