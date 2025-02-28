@@ -18,13 +18,12 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
     
-    - name: Configure AWS OIDC
-      run: |
-        echo "Configuring AWS OIDC Role"
-        AWS_ROLE_ARN="arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_OIDC_ROLE }}"
-        echo "[profile github-actions]" > ~/.aws/config
-        echo "role_arn=${AWS_ROLE_ARN}" >> ~/.aws/config
-        echo "credential_source=Environment" >> ~/.aws/config
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_OIDC_ROLE }}
+        role-session-name: GitHubActionsRole
+        aws-region: us-east-1
     
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
