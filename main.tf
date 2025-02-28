@@ -63,6 +63,20 @@ resource "aws_security_group" "kafka_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+    ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+    egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 # ---------------------- IAM ROLES ----------------------
@@ -208,14 +222,17 @@ resource "aws_instance" "ec2" {
               git clone https://github.com/OBEDPoP/kafka-setup.git /home/ec2-user/banking
               cd /home/ec2-user/banking
               
+              # Update Flask to bind to 0.0.0.0
+              sed -i 's/app.run()/app.run(host="0.0.0.0", port=5000)/' app.py
+              
               # Start AKHQ (Kafka UI)
               docker run -d -p 8080:8080 tchiotludo/akhq
               
               # Start Flask app
-              python3 app.py &
+              nohup python3 app.py &
               
               # Start Kafka consumer
-              python3 consumer.py &
+              nohup python3 consumer.py &
               EOF
 }
 
