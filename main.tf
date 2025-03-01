@@ -26,6 +26,19 @@ resource "aws_vpc" "kafka_vpc" {
   cidr_block = "10.0.0.0/16"
 }
 
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.kafka_vpc.id
+}
+
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.kafka_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+}
+
 resource "aws_subnet" "public1" {
   vpc_id                  = aws_vpc.kafka_vpc.id
   cidr_block              = "10.0.1.0/24"
@@ -40,19 +53,6 @@ resource "aws_subnet" "public2" {  # Added second subnet
   availability_zone       = "us-east-1b"
 }
 
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.kafka_vpc.id
-}
-
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.kafka_vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
-  }
-}
-
 resource "aws_route_table_association" "public1_assoc" {
   subnet_id      = aws_subnet.public1.id
   route_table_id = aws_route_table.public_rt.id
@@ -63,6 +63,8 @@ resource "aws_route_table_association" "public2_assoc" {
   route_table_id = aws_route_table.public_rt.id
 }
 
+# ---------------------- Security Groups ----------------------
+# Security Group for EC2
 resource "aws_security_group" "kafka_sg" {
   vpc_id = aws_vpc.kafka_vpc.id
 
@@ -87,14 +89,14 @@ resource "aws_security_group" "kafka_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-    ingress {
+  ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-    egress {
+  egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -102,8 +104,27 @@ resource "aws_security_group" "kafka_sg" {
   }
 }
 
-# ---------------------- IAM ROLES ----------------------
+# Security Group for MSK
+resource "aws_security_group" "msk_sg" {
+  vpc_id = aws_vpc.kafka_vpc.id
 
+  # Allow inbound traffic on Kafka port (9092) from EC2 security group
+  ingress {
+    from_port        = 9092
+    to_port          = 9092
+    protocol         = "tcp"
+    security_groups  = [aws_security_group.kafka_sg.id]  # Allows EC2 to connect to MSK brokers
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]  # Allows outbound traffic to anywhere
+  }
+}
+
+# ---------------------- IAM ROLES ----------------------
 # IAM Role for EC2
 resource "aws_iam_role" "ec2_role" {
   name = "ec2_kafka_role"
@@ -201,7 +222,7 @@ resource "aws_msk_cluster" "kafka" {
   broker_node_group_info {
     instance_type   = "kafka.t3.small"
     client_subnets  = [aws_subnet.public1.id, aws_subnet.public2.id]  # Added second subnet
-    security_groups = [aws_security_group.kafka_sg.id]
+    security_groups = [aws_security_group.msk_sg.id]  # Apply MSK security group here
   }
 
   encryption_info {
@@ -233,29 +254,48 @@ resource "aws_instance" "ec2" {
   vpc_security_group_ids = [aws_security_group.kafka_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
-  user_data = <<-EOF
-              #!/bin/bash
-              yum update -y
-              yum install -y docker python3-pip git
-              systemctl start docker
-              systemctl enable docker
-              pip3 install flask kafka-python psycopg2-binary psycopg2
-              
-              # Clone the repository and navigate to the banking folder
-              git clone https://github.com/OBEDPoP/kafka-setup.git /home/ec2-user/banking
-              cd /home/ec2-user/banking
-              
-              # Update Flask to bind to 0.0.0.0
-              sed -i 's/app.run()/app.run(host="0.0.0.0", port=5000)/' app.py
-              
-              # Start AKHQ (Kafka UI)
-              docker run -d -p 8080:8080 tchiotludo/akhq
-              
-              # Start Flask app
-              nohup python3 app.py &
-              
-              # Start Kafka consumer
-              nohup python3 consumer.py &
+  user_data = <<-EOF#!/bin/bash
+
+# Set Kafka broker environment variable and DB host (use actual values or variables)
+export KAFKA_BROKER="b-1.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092,b-2.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092"
+export DB_HOST="banking-db.cr4gwkce03c9.us-east-1.rds.amazonaws.com:5432"
+
+# Install dependencies
+sudo yum update -y
+sudo yum install -y python3 python3-pip git
+sudo yum install -y docker
+sudo systemctl start docker
+sudo systemctl enable docker
+pip3 install flask kafka-python
+
+# Clone the Flask app repository
+git clone https://github.com/OBEDPoP/kafka-setup.git ./kafka
+cd ./kafka/banking
+
+# Install screen if not installed
+sudo yum install -y screen
+
+# Start a new screen session for Flask app and run it in the background
+screen -dmS flask-app bash -c "python3 app.py"
+
+# Pull AKHQ (Kafka UI) Docker image
+sudo docker pull tchiotludo/akhq
+
+# MSK Bootstrap Servers (ensure this is a single line)
+MSK_BOOTSTRAP_SERVER="b-1.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092,b-2.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092"
+
+# Run AKHQ (Kafka UI) in detached mode
+sudo docker run -d -p 8080:8080 \
+  -e AKHQ_CONFIGURATION='
+  akhq:
+    connections:
+      kafka-cluster:
+        properties:
+          bootstrap.servers: "'$MSK_BOOTSTRAP_SERVER'"
+  ' tchiotludo/akhq
+
+# Start Kafka consumer (in detached mode)
+nohup python3 consumer.py &
               EOF
 }
 

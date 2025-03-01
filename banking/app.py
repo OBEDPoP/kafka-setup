@@ -1,12 +1,14 @@
 from flask import Flask, request, jsonify
-from kafka import KafkaProducer
+from kafka import KafkaProducer, KafkaConsumer
+from kafka.errors import KafkaError
 import json
 import os
 
 app = Flask(__name__)
 
 # Kafka Configuration
-KAFKA_BROKER = os.getenv("KAFKA_BROKER", "${aws_msk_cluster.kafka.bootstrap_brokers}")
+KAFKA_BROKER = os.getenv("b-1.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092,b-2.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com
+:9092")
 KAFKA_TOPIC = "transactions"
 
 # Initialize Kafka Producer
@@ -14,6 +16,16 @@ producer = KafkaProducer(
     bootstrap_servers=KAFKA_BROKER,
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
+
+# Function to check Kafka connection
+def check_kafka_connection():
+    try:
+        # Trying to create a KafkaConsumer (a simple connection check)
+        consumer = KafkaConsumer(bootstrap_servers=KAFKA_BROKER)
+        consumer.close()
+        return True
+    except KafkaError as e:
+        return False
 
 @app.route('/transaction', methods=['POST'])
 def create_transaction():
@@ -34,7 +46,12 @@ def create_transaction():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({"status": "API is running"}), 200
+    # Checking if Kafka is connected
+    if check_kafka_connection():
+        return jsonify({"status": "API is running", "kafka": "Connected"}), 200
+    else:
+        return jsonify({"status": "API is running", "kafka": "Disconnected"}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Run the Flask app with production settings
+    app.run(host='0.0.0.0', port=5000, debug=False)
