@@ -254,7 +254,8 @@ resource "aws_instance" "ec2" {
   vpc_security_group_ids = [aws_security_group.kafka_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
-  user_data = <<-EOF#!/bin/bash
+  user_data = <<-EOF
+#!/bin/bash
 
 # Set Kafka broker environment variable and DB host (use actual values or variables)
 export KAFKA_BROKER="b-1.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092,b-2.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092"
@@ -296,8 +297,10 @@ sudo docker run -d -p 8080:8080 \
 
 # Start Kafka consumer (in detached mode)
 nohup python3 consumer.py &
-              EOF
+
+EOF
 }
+
 
 # ---------------------- OUTPUTS ----------------------
 output "kafka_bootstrap_servers" {
