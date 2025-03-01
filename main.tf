@@ -69,8 +69,8 @@ resource "aws_security_group" "kafka_sg" {
   vpc_id = aws_vpc.kafka_vpc.id
 
   ingress {
-    from_port   = 9092
-    to_port     = 9092
+    from_port   = 9094
+    to_port     = 9094
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -108,10 +108,10 @@ resource "aws_security_group" "kafka_sg" {
 resource "aws_security_group" "msk_sg" {
   vpc_id = aws_vpc.kafka_vpc.id
 
-  # Allow inbound traffic on Kafka port (9092) from EC2 security group
+  # Allow inbound traffic on Kafka port (9094) from EC2 security group
   ingress {
-    from_port        = 9092
-    to_port          = 9092
+    from_port        = 9094
+    to_port          = 9094
     protocol         = "tcp"
     security_groups  = [aws_security_group.kafka_sg.id]  # Allows EC2 to connect to MSK brokers
   }
@@ -258,7 +258,7 @@ resource "aws_instance" "ec2" {
 #!/bin/bash
 
 # Set Kafka broker environment variable and DB host (use actual values or variables)
-export KAFKA_BROKER="b-1.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092,b-2.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092"
+export KAFKA_BROKER="b-2.bankingkafkacluster.ijsx2p.c18.kafka.us-east-1.amazonaws.com:9094,b-1.bankingkafkacluster.ijsx2p.c18.kafka.us-east-1.amazonaws.com:9094"
 export DB_HOST="banking-db.cr4gwkce03c9.us-east-1.rds.amazonaws.com:5432"
 
 # Install dependencies
@@ -283,7 +283,7 @@ screen -dmS flask-app bash -c "python3 app.py"
 sudo docker pull tchiotludo/akhq
 
 # MSK Bootstrap Servers (ensure this is a single line)
-MSK_BOOTSTRAP_SERVER="b-1.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092,b-2.bankingkafkacluster.0ctw8k.c18.kafka.us-east-1.amazonaws.com:9092"
+MSK_BOOTSTRAP_SERVER="b-2.bankingkafkacluster.ijsx2p.c18.kafka.us-east-1.amazonaws.com:9094,b-1.bankingkafkacluster.ijsx2p.c18.kafka.us-east-1.amazonaws.com:9094"
 
 # Run AKHQ (Kafka UI) in detached mode
 sudo docker run -d -p 8080:8080 \
