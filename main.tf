@@ -248,7 +248,7 @@ resource "aws_db_instance" "rds" {
 # ---------------------- EC2 INSTANCE ----------------------
 resource "aws_instance" "ec2" {
   ami                    = "ami-02a53b0d62d37a757"
-  instance_type          = "t3.nano"
+  instance_type          = "t2.micro"
   key_name               = "docker"
   subnet_id              = aws_subnet.public1.id
   vpc_security_group_ids = [aws_security_group.kafka_sg.id]
