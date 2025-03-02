@@ -21,6 +21,7 @@ terraform {
   }
 }
 
+/*
 # ---------------------- VPC & Networking ----------------------
 resource "aws_vpc" "kafka_vpc" {
   cidr_block = "10.0.0.0/16"
@@ -258,7 +259,7 @@ resource "aws_instance" "ec2" {
 #!/bin/bash
 
 # Set Kafka broker environment variable and DB host (use actual values or variables)
-export KAFKA_BROKER="b-2.bankingkafkacluster.ijsx2p.c18.kafka.us-east-1.amazonaws.com:9094,b-1.bankingkafkacluster.ijsx2p.c18.kafka.us-east-1.amazonaws.com:9094"
+export KAFKA_BROKER="b-1.bankingkafkacluster.2q5uta.c18.kafka.us-east-1.amazonaws.com:9094,b-2.bankingkafkacluster.2q5uta.c18.kafka.us-east-1.amazonaws.com:9094"
 export DB_HOST="banking-db.cr4gwkce03c9.us-east-1.rds.amazonaws.com:5432"
 
 # Install dependencies
@@ -283,7 +284,7 @@ screen -dmS flask-app bash -c "python3 app.py"
 sudo docker pull tchiotludo/akhq
 
 # MSK Bootstrap Servers (ensure this is a single line)
-MSK_BOOTSTRAP_SERVER="b-2.bankingkafkacluster.ijsx2p.c18.kafka.us-east-1.amazonaws.com:9094,b-1.bankingkafkacluster.ijsx2p.c18.kafka.us-east-1.amazonaws.com:9094"
+MSK_BOOTSTRAP_SERVER="b-1.bankingkafkacluster.2q5uta.c18.kafka.us-east-1.amazonaws.com:9094,b-2.bankingkafkacluster.2q5uta.c18.kafka.us-east-1.amazonaws.com:9094"
 
 # Run AKHQ (Kafka UI) in detached mode
 sudo docker run -d -p 8080:8080 \
@@ -314,3 +315,5 @@ output "ec2_public_ip" {
 output "rds_endpoint" {
   value = aws_db_instance.rds.endpoint
 }
+
+*/
