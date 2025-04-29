@@ -2,6 +2,9 @@
 
 # Banking Transaction System with Apache Kafka on AWS
 
+## NOTE!!!!:
+While this project includes a Terraform script, it is just a basic one with no separate backend, state file, or service.tf files arrangements rather part of the same main.tf, which is not advised for real-world projects, try using modules for real-world projects.
+
 ## Overview
 This project sets up a **banking transaction system** on **AWS** using **Apache Kafka**, a **PostgreSQL database (RDS)**, a **Flask application**, and a **Kafka GUI**. The infrastructure is deployed using **Terraform** following best practices.
 
